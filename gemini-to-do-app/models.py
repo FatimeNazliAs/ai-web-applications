@@ -19,7 +19,7 @@ class User(Base):
 
     id=Column(Integer,primary_key=True,index=True)
     email=Column(String, unique=True)
-    user_name=Column(String, unique=True)
+    username=Column(String, unique=True)
     first_name=Column(String)
     last_name=Column(String)
     hashed_password=Column(String)
