@@ -1,18 +1,33 @@
 from typing import Annotated
-
-from fastapi import APIRouter, Depends, Path, HTTPException
+from fastapi import APIRouter, Depends, Path, HTTPException,Request
+from google.auth.aws import RequestSigner
 from pydantic import BaseModel,Field
 from sqlalchemy.orm import Session
 from starlette import status
+from starlette.responses import RedirectResponse
 
 from models import Base, ToDo
 from database import engine, SessionLocal
 from routers.auth import get_current_user
+from fastapi.templating import Jinja2Templates
+
+from dotenv import load_dotenv
+import google.generativeai as genai
+import os
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.messages import HumanMessage,AIMessage
+
+import markdown
+from bs4 import BeautifulSoup
+
 
 router=APIRouter(
     prefix="/to_do",
     tags=["ToDo"]
 )
+
+templates=Jinja2Templates(directory="templates")
+
 
 
 class ToDoRequest(BaseModel):
@@ -41,6 +56,65 @@ db_dependency=Annotated[Session,Depends(get_db)]
 #get_current_user returns dictionary
 user_dependency=Annotated[dict,Depends(get_current_user)]
 
+
+def redirect_to_login():
+    redirect_response=RedirectResponse(url="/auth/login-page",status_code=status.HTTP_302_FOUND)
+    redirect_response.delete_cookie("access_token")
+    return redirect_response
+
+
+
+@router.get("/todo-page")
+async def render_todo_page(request:Request,db:db_dependency):
+    try:
+        #base.js dosyasında token 'access_token' olarak kaydedilmiş!
+        user=await get_current_user(request.cookies.get('access_token'))
+        if user is None:
+            return redirect_to_login()
+        todos=db.query(ToDo).filter(ToDo.owner_id==user.get('id')).all()
+
+        return templates.TemplateResponse("todo.html",{"request":request,"todos":todos,"user":user})
+
+    except:
+        return redirect_to_login()
+
+
+
+
+@router.get("/edit-todo-page/{to_do_id}")
+async def render_edit_todo_page(request:Request,to_do_id:int,db:db_dependency):
+    try:
+        #base.js dosyasında token 'access_token' olarak kaydedilmiş!
+        user=await get_current_user(request.cookies.get('access_token'))
+        if user is None:
+            return redirect_to_login()
+        todo=db.query(ToDo).filter(ToDo.id==to_do_id).first()
+
+        return templates.TemplateResponse("edit-todo.html",{"request":request,"todo":todo,"user":user})
+
+    except:
+        return redirect_to_login()
+
+
+
+@router.get("/add-todo-page")
+async def render_add_todo_page(request:Request):
+    try:
+        user=await get_current_user(request.cookies.get('access_token'))
+        if user is None:
+            return redirect_to_login()
+        return templates.TemplateResponse("add-todo.html",{"request":request,"user":user})
+
+    except:
+        return redirect_to_login()
+
+
+
+
+
+
+
+
 @router.get("/read_all")
 async def read_all(user:user_dependency,db:db_dependency):
     if user is None:
@@ -68,6 +142,7 @@ async def create_to_do(user:user_dependency,db:db_dependency,to_do_request:ToDoR
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
     todo=ToDo(**to_do_request.dict(),owner_id=user.get("id"))
+    todo.description=create_to_do_with_gemini(todo.description)
     db.add(todo)
     db.commit()
 
@@ -99,3 +174,28 @@ async def delete_to_do(user:user_dependency,db:db_dependency,to_do_id:int=Path(g
    # db.query(ToDo).filter(ToDo.id == to_do_id).delete()
     db.delete(todo)
     db.commit()
+
+
+
+def create_to_do_with_gemini(to_do_string:str):
+    load_dotenv()
+    genai.configure(api_key=os.environ.get('GOOGLE_API_KEY'))
+    llm=ChatGoogleGenerativeAI(model="gemini-1.5-pro")
+    response=llm.invoke(
+        [
+            HumanMessage(content="I will provide you a todo item to add my to do list. "
+                                 "What I want you to do is to create a longer and more comprehensive description of that todo item, "
+                                 "my next message will be my todo: "),
+            HumanMessage(content=to_do_string),
+        ]
+    )
+    return markdown_to_text(response.content)
+
+def markdown_to_text(markdown_string):
+    html=markdown.markdown(markdown_string)
+    soup=BeautifulSoup(html,"html.parser")
+    text=soup.get_text()
+    return text
+
+
+

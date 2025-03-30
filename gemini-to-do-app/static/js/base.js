@@ -16,7 +16,7 @@
             };
 
             try {
-                const response = await fetch('/todo/todo', {
+                const response = await fetch('/to_do/to_do', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -66,7 +66,7 @@
 
             console.log(`${todoId}`)
 
-            const response = await fetch(`/todo/todo/${todoId}`, {
+            const response = await fetch(`/to_do/to_do/${todoId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -76,7 +76,7 @@
             });
 
             if (response.ok) {
-                window.location.href = '/todo/todo-page'; // Redirect to the todo page
+                window.location.href = '/to_do/todo-page'; // Redirect to the todo page
             } else {
                 // Handle error
                 const errorData = await response.json();
@@ -98,7 +98,7 @@
                     throw new Error('Authentication token not found');
                 }
 
-                const response = await fetch(`/todo/todo/${todoId}`, {
+                const response = await fetch(`/to_do/to_do/${todoId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -107,7 +107,7 @@
 
                 if (response.ok) {
                     // Handle success
-                    window.location.href = '/todo/todo-page'; // Redirect to the todo page
+                    window.location.href = '/to_do/todo-page'; // Redirect to the todo page
                 } else {
                     // Handle error
                     const errorData = await response.json();
@@ -152,7 +152,7 @@
                     logout();
                     // Save token to cookie
                     document.cookie = `access_token=${data.access_token}; path=/`;
-                    window.location.href = '/todo/todo-page'; // Change this to your desired redirect page
+                    window.location.href = '/to_do/todo-page'; // Change this to your desired redirect page
                 } else {
                     // Handle error
                     const errorData = await response.json();

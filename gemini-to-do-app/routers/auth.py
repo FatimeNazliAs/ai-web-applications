@@ -1,4 +1,4 @@
-from fastapi import APIRouter,Depends,HTTPException
+from fastapi import APIRouter,Depends,HTTPException,Request
 from pydantic import BaseModel
 from sqlalchemy.util import deprecated
 from typing import Annotated
@@ -10,11 +10,13 @@ from starlette import status
 from fastapi.security import OAuth2PasswordRequestForm,OAuth2PasswordBearer
 from jose import jwt,JWTError
 from datetime import timedelta,datetime,timezone
-
+from fastapi.templating import Jinja2Templates
 
 router=APIRouter(
     prefix="/auth",
     tags=["Authentication"])
+
+templates=Jinja2Templates(directory="templates")
 
 SECRET_KEY="np4pu48pawtshh1drsj7lgacpuvt8hxu"
 ALGORITHM="HS256"
@@ -66,6 +68,21 @@ def authenticate_user(username:str,password:str,db):
     if not bcrypt_context.verify(password,user.hashed_password):
         return False
     return user
+
+
+@router.get("/login-page")
+def render_login_page(request:Request):
+    return templates.TemplateResponse("login.html",{"request":request})
+
+
+
+@router.get("/register-page")
+def render_register_page(request:Request):
+    return templates.TemplateResponse("register.html",{"request":request})
+
+
+
+
 
 
 
