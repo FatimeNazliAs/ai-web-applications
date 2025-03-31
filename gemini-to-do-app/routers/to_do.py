@@ -179,7 +179,12 @@ async def delete_to_do(user:user_dependency,db:db_dependency,to_do_id:int=Path(g
 
 def create_to_do_with_gemini(to_do_string:str):
     load_dotenv()
-    genai.configure(api_key=os.environ.get('GOOGLE_API_KEY'))
+    print("GOOGLE_API_KEY:", os.environ.get('GOOGLE_API_KEY'))
+    api_key = os.getenv("GOOGLE_API_KEY")
+
+    if not api_key:
+        raise ValueError("GOOGLE_API_KEY is missing or not loaded properly!")
+    genai.configure(api_key=api_key)
     llm=ChatGoogleGenerativeAI(model="gemini-1.5-pro")
     response=llm.invoke(
         [
