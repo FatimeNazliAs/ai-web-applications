@@ -2,8 +2,8 @@ from fastapi import APIRouter,Depends,HTTPException,Request
 from pydantic import BaseModel
 from sqlalchemy.util import deprecated
 from typing import Annotated
-from database import engine, SessionLocal
-from models import User
+from ..database import engine, SessionLocal
+from ..models import User
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from starlette import status
@@ -16,7 +16,7 @@ router=APIRouter(
     prefix="/auth",
     tags=["Authentication"])
 
-templates=Jinja2Templates(directory="templates")
+templates=Jinja2Templates(directory="app/templates")
 
 SECRET_KEY="np4pu48pawtshh1drsj7lgacpuvt8hxu"
 ALGORITHM="HS256"
