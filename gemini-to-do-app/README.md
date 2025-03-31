@@ -2,6 +2,10 @@
 
 A to-do application built with FastAPI that integrates Google Gemini 1.5 Pro for task descriptions. Users can register, create tasks, and get AI-generated descriptions using Gemini. The app is containerized with Docker and deployed on Google Cloud.
 
+## Demo Video
+
+![Watch the demo video](./videos/gemini-to-do-app-introduction-video.mp4)
+
 ## Features
 
 - **User Authentication**: Register and log in securely.
