@@ -4,7 +4,7 @@ A to-do application built with FastAPI that integrates Google Gemini 1.5 Pro for
 
 ## Demo Video
 
-[![Custom Video Thumbnail](videos/introduction_image.png)](https://www.youtube.com/watch?v=VIDEO_ID)
+[![Custom Video Thumbnail](videos/introduction_image.png)](https://youtu.be/3zZTFchu9Ic)
 
 
 ## Features
